@@ -279,6 +279,107 @@
   cursor: pointer;
 }
 
+/* Facebook Section */
+.facebook-section {
+  margin-bottom: 2rem;
+}
+
+.facebook-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.facebook-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.facebook-card.connected {
+  border-left: 5px solid #4ade80;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.facebook-card.disconnected {
+  border-left: 5px solid #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.facebook-card.loading {
+  border-left: 5px solid #9ca3af;
+}
+
+.facebook-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.facebook-info {
+  flex: 1;
+}
+
+.facebook-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.facebook-info p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.facebook-info .connected-date {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #999;
+}
+
+.btn-connect-facebook {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-connect-facebook:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+}
+
+.btn-disconnect-facebook {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: #ef4444;
+  border: 2px solid #ef4444;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-disconnect-facebook:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+}
+
 /* Targets Section */
 .targets-section {
   background: white;
@@ -548,6 +649,20 @@
   }
 
   .target-actions button {
+    width: 100%;
+  }
+
+  .facebook-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .facebook-info {
+    text-align: center;
+  }
+
+  .btn-connect-facebook,
+  .btn-disconnect-facebook {
     width: 100%;
   }
 }

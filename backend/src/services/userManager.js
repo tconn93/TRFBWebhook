@@ -134,11 +134,85 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
+/**
+ * Connect Facebook account to user
+ */
+async function connectFacebookAccount(userId, facebookData) {
+  const result = await query(
+    `UPDATE users
+     SET facebook_user_id = $1,
+         facebook_access_token = $2,
+         facebook_token_expires = $3,
+         facebook_connected_at = NOW(),
+         updated_at = NOW()
+     WHERE id = $4
+     RETURNING id, email, name, facebook_user_id, facebook_connected_at, created_at, updated_at`,
+    [
+      facebookData.facebookUserId,
+      facebookData.accessToken,
+      facebookData.tokenExpires,
+      userId
+    ]
+  );
+
+  return result.rows[0];
+}
+
+/**
+ * Disconnect Facebook account from user
+ */
+async function disconnectFacebookAccount(userId) {
+  const result = await query(
+    `UPDATE users
+     SET facebook_user_id = NULL,
+         facebook_access_token = NULL,
+         facebook_token_expires = NULL,
+         facebook_connected_at = NULL,
+         updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, email, name, created_at, updated_at`,
+    [userId]
+  );
+
+  return result.rows[0];
+}
+
+/**
+ * Check if user has Facebook connected
+ */
+async function hasFacebookConnected(userId) {
+  const result = await query(
+    'SELECT facebook_user_id, facebook_connected_at FROM users WHERE id = $1',
+    [userId]
+  );
+
+  const user = result.rows[0];
+  return {
+    connected: !!user.facebook_user_id,
+    connectedAt: user.facebook_connected_at
+  };
+}
+
+/**
+ * Get user by Facebook ID
+ */
+async function getUserByFacebookId(facebookUserId) {
+  const result = await query(
+    'SELECT * FROM users WHERE facebook_user_id = $1',
+    [facebookUserId]
+  );
+  return result.rows[0];
+}
+
 module.exports = {
   getUserByEmail,
   getUserById,
   createUser,
   verifyPassword,
   updateUser,
-  deleteUser
+  deleteUser,
+  connectFacebookAccount,
+  disconnectFacebookAccount,
+  hasFacebookConnected,
+  getUserByFacebookId
 };

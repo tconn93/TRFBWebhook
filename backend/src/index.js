@@ -5,6 +5,7 @@ const cors = require('cors');
 const webhookRouter = require('./routes/webhook');
 const targetsRouter = require('./routes/targets');
 const authRouter = require('./routes/auth');
+const facebookRouter = require('./routes/facebook');
 const { initializeDatabase } = require('./db/init');
 
 const app = express();
@@ -30,6 +31,7 @@ app.get('/health', (req, res) => {
 app.use('/webhook', webhookRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/targets', targetsRouter);
+app.use('/api/facebook', facebookRouter);
 
 // 404 handler
 app.use((req, res) => {
@@ -56,6 +58,7 @@ async function startServer() {
       console.log(`Webhook endpoint: http://localhost:${PORT}/webhook`);
       console.log(`Auth endpoints: http://localhost:${PORT}/api/auth/login`);
       console.log(`Target management: http://localhost:${PORT}/api/targets`);
+      console.log(`Facebook OAuth: http://localhost:${PORT}/api/facebook/status`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

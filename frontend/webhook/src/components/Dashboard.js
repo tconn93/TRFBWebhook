@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { logout, getTargets, createTarget, updateTarget, deleteTarget, testTarget } from '../services/api';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { logout, getTargets, createTarget, updateTarget, deleteTarget, testTarget, getFacebookStatus, getFacebookAuthUrl, disconnectFacebook } from '../services/api';
 import './Dashboard.css';
 
 function Dashboard() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [userEmail, setUserEmail] = useState('');
   const [userName, setUserName] = useState('');
   const [targets, setTargets] = useState([]);
@@ -16,6 +17,9 @@ function Dashboard() {
     active: true
   });
   const [error, setError] = useState('');
+  const [facebookConnected, setFacebookConnected] = useState(false);
+  const [facebookConnectedAt, setFacebookConnectedAt] = useState(null);
+  const [facebookLoading, setFacebookLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -29,20 +33,51 @@ function Dashboard() {
     setUserEmail(localStorage.getItem('userEmail') || '');
     setUserName(localStorage.getItem('userName') || '');
 
-    // Load targets
+    // Check for Facebook OAuth callback
+    const facebookConnected = searchParams.get('facebook_connected');
+    const facebookError = searchParams.get('facebook_error');
+
+    if (facebookConnected === 'true') {
+      setError('');
+      alert('Facebook account connected successfully!');
+      // Remove query params
+      navigate('/dashboard', { replace: true });
+    } else if (facebookError) {
+      setError(`Facebook connection failed: ${facebookError}`);
+      // Remove query params
+      navigate('/dashboard', { replace: true });
+    }
+
+    // Load targets and Facebook status
     loadTargets();
-  }, [navigate]);
+    loadFacebookStatus();
+  }, [navigate, searchParams]);
 
   const loadTargets = async () => {
     try {
       setLoading(true);
       const response = await getTargets();
-      setTargets(response.targets || []);
+      setTargets(Array.isArray(response.targets) ? response.targets : []);
     } catch (error) {
       console.error('Failed to load targets:', error);
       setError('Failed to load webhook targets');
+      setTargets([]); // Ensure targets is always an array
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadFacebookStatus = async () => {
+    try {
+      setFacebookLoading(true);
+      const response = await getFacebookStatus();
+      setFacebookConnected(response.connected || false);
+      setFacebookConnectedAt(response.connectedAt || null);
+    } catch (error) {
+      console.error('Failed to load Facebook status:', error);
+      setFacebookConnected(false);
+    } finally {
+      setFacebookLoading(false);
     }
   };
 
@@ -104,6 +139,33 @@ function Dashboard() {
     }
   };
 
+  const handleConnectFacebook = async () => {
+    try {
+      const response = await getFacebookAuthUrl();
+      if (response.authUrl) {
+        // Redirect to Facebook OAuth page
+        window.location.href = response.authUrl;
+      }
+    } catch (error) {
+      setError(error.message || 'Failed to get Facebook authorization URL');
+    }
+  };
+
+  const handleDisconnectFacebook = async () => {
+    if (!window.confirm('Are you sure you want to disconnect your Facebook account?')) {
+      return;
+    }
+
+    try {
+      await disconnectFacebook();
+      setFacebookConnected(false);
+      setFacebookConnectedAt(null);
+      alert('Facebook account disconnected successfully');
+    } catch (error) {
+      setError(error.message || 'Failed to disconnect Facebook account');
+    }
+  };
+
   return (
     <div className="dashboard-container">
       <nav className="dashboard-nav">
@@ -134,18 +196,55 @@ function Dashboard() {
           </div>
         )}
 
+        <div className="facebook-section">
+          {facebookLoading ? (
+            <div className="facebook-card loading">
+              <div className="facebook-icon">📘</div>
+              <div className="facebook-info">
+                <h3>Facebook Connection</h3>
+                <p>Loading...</p>
+              </div>
+            </div>
+          ) : facebookConnected ? (
+            <div className="facebook-card connected">
+              <div className="facebook-icon">✅</div>
+              <div className="facebook-info">
+                <h3>Connected to Facebook</h3>
+                <p>Your app is connected to Facebook and ready to receive webhooks</p>
+                {facebookConnectedAt && (
+                  <p className="connected-date">Connected on {new Date(facebookConnectedAt).toLocaleDateString()}</p>
+                )}
+              </div>
+              <button onClick={handleDisconnectFacebook} className="btn-disconnect-facebook">
+                Disconnect
+              </button>
+            </div>
+          ) : (
+            <div className="facebook-card disconnected">
+              <div className="facebook-icon">📘</div>
+              <div className="facebook-info">
+                <h3>Connect to Facebook</h3>
+                <p>Connect your Facebook account to start receiving webhooks from your Facebook pages and apps</p>
+              </div>
+              <button onClick={handleConnectFacebook} className="btn-connect-facebook">
+                Connect Facebook
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="dashboard-grid">
           <div className="dashboard-card card-webhooks">
             <div className="card-icon">📡</div>
             <h3>Active Webhooks</h3>
-            <p className="card-number">{targets.filter(t => t.active).length}</p>
+            <p className="card-number">{Array.isArray(targets) ? targets.filter(t => t.active).length : 0}</p>
             <p className="card-description">Active webhook targets</p>
           </div>
 
           <div className="dashboard-card card-total">
             <div className="card-icon">📋</div>
             <h3>Total Targets</h3>
-            <p className="card-number">{targets.length}</p>
+            <p className="card-number">{Array.isArray(targets) ? targets.length : 0}</p>
             <p className="card-description">Total configured targets</p>
           </div>
 
@@ -169,7 +268,7 @@ function Dashboard() {
 
           {loading ? (
             <div className="loading">Loading targets...</div>
-          ) : targets.length === 0 ? (
+          ) : !Array.isArray(targets) || targets.length === 0 ? (
             <div className="empty-state">
               <p>No webhook targets configured yet.</p>
               <p>Click "Add Webhook Target" to get started!</p>

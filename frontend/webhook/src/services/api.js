@@ -166,6 +166,31 @@ export async function testTarget(id) {
   });
 }
 
+// ===== Facebook OAuth API =====
+
+/**
+ * Get Facebook connection status
+ */
+export async function getFacebookStatus() {
+  return await apiRequest('/api/facebook/status');
+}
+
+/**
+ * Get Facebook OAuth authorization URL
+ */
+export async function getFacebookAuthUrl() {
+  return await apiRequest('/api/facebook/auth-url');
+}
+
+/**
+ * Disconnect Facebook account
+ */
+export async function disconnectFacebook() {
+  return await apiRequest('/api/facebook/disconnect', {
+    method: 'POST'
+  });
+}
+
 // ===== Auth Helpers =====
 
 /**
