@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { register } from '../services/api';
 import './Auth.css';
 
 function Register() {
@@ -11,6 +12,7 @@ function Register() {
     confirmPassword: ''
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,7 +63,7 @@ function Register() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = validateForm();
@@ -71,19 +73,28 @@ function Register() {
       return;
     }
 
-    // Mock registration - in production, this would call your API
-    console.log('Registration attempt:', {
-      name: formData.name,
-      email: formData.email
-    });
+    setLoading(true);
+    setErrors({});
 
-    // Simulate successful registration
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('userEmail', formData.email);
-    localStorage.setItem('userName', formData.name);
+    try {
+      // Call backend API
+      const response = await register(formData.email, formData.password, formData.name);
 
-    // Navigate to dashboard
-    navigate('/dashboard');
+      // Store user info in localStorage
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userEmail', response.user.email);
+      localStorage.setItem('userName', response.user.name);
+
+      // Navigate to dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Registration failed:', error);
+      setErrors({
+        general: error.message || 'Registration failed. Please try again.'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -98,6 +109,12 @@ function Register() {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {errors.general && (
+            <div className="error-message" style={{ marginBottom: '1rem', textAlign: 'center' }}>
+              {errors.general}
+            </div>
+          )}
+
           <div className="form-group">
             <label htmlFor="name">Full Name</label>
             <input
@@ -108,6 +125,7 @@ function Register() {
               onChange={handleChange}
               className={errors.name ? 'error' : ''}
               placeholder="John Doe"
+              disabled={loading}
             />
             {errors.name && <span className="error-message">{errors.name}</span>}
           </div>
@@ -122,6 +140,7 @@ function Register() {
               onChange={handleChange}
               className={errors.email ? 'error' : ''}
               placeholder="you@example.com"
+              disabled={loading}
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
@@ -136,6 +155,7 @@ function Register() {
               onChange={handleChange}
               className={errors.password ? 'error' : ''}
               placeholder="••••••••"
+              disabled={loading}
             />
             {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
@@ -150,14 +170,15 @@ function Register() {
               onChange={handleChange}
               className={errors.confirmPassword ? 'error' : ''}
               placeholder="••••••••"
+              disabled={loading}
             />
             {errors.confirmPassword && (
               <span className="error-message">{errors.confirmPassword}</span>
             )}
           </div>
 
-          <button type="submit" className="submit-button">
-            Create Account
+          <button type="submit" className="submit-button" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 

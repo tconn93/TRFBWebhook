@@ -137,3 +137,17 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Project specific
+backend/src/data/
+*.sqlite
+*.db
+
+# React build
+frontend/webhook/build/
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-*
+.DS_Store

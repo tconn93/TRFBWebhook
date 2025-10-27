@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { login } from '../services/api';
 import './Auth.css';
 
 function Login() {
@@ -9,6 +10,7 @@ function Login() {
     password: ''
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,7 +47,7 @@ function Login() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = validateForm();
@@ -55,15 +57,28 @@ function Login() {
       return;
     }
 
-    // Mock authentication - in production, this would call your API
-    console.log('Login attempt:', formData);
+    setLoading(true);
+    setErrors({});
 
-    // Simulate successful login
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('userEmail', formData.email);
+    try {
+      // Call backend API
+      const response = await login(formData.email, formData.password);
 
-    // Navigate to dashboard
-    navigate('/dashboard');
+      // Store user info in localStorage
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userEmail', response.user.email);
+      localStorage.setItem('userName', response.user.name);
+
+      // Navigate to dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Login failed:', error);
+      setErrors({
+        general: error.message || 'Login failed. Please check your credentials.'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,6 +93,12 @@ function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {errors.general && (
+            <div className="error-message" style={{ marginBottom: '1rem', textAlign: 'center' }}>
+              {errors.general}
+            </div>
+          )}
+
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
             <input
@@ -88,6 +109,7 @@ function Login() {
               onChange={handleChange}
               className={errors.email ? 'error' : ''}
               placeholder="you@example.com"
+              disabled={loading}
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
@@ -102,12 +124,13 @@ function Login() {
               onChange={handleChange}
               className={errors.password ? 'error' : ''}
               placeholder="••••••••"
+              disabled={loading}
             />
             {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
 
-          <button type="submit" className="submit-button">
-            Sign In
+          <button type="submit" className="submit-button" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
