@@ -6,6 +6,7 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Privacy from './components/Privacy';
 import TermsOfService from './components/TermsOfService';
+import DataDeletion from './components/DataDeletion';
 import './App.css';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/data-deletion" element={<DataDeletion />} />
         </Routes>
       </div>
     </Router>

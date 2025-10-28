@@ -6,6 +6,7 @@ const webhookRouter = require('./routes/webhook');
 const targetsRouter = require('./routes/targets');
 const authRouter = require('./routes/auth');
 const facebookRouter = require('./routes/facebook');
+const dataDeletionRouter = require('./routes/dataDeletion');
 const { initializeDatabase } = require('./db/init');
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/webhook', webhookRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/targets', targetsRouter);
 app.use('/api/facebook', facebookRouter);
+app.use('/data-deletion', dataDeletionRouter);
 
 // 404 handler
 app.use((req, res) => {
@@ -59,6 +61,7 @@ async function startServer() {
       console.log(`Auth endpoints: http://localhost:${PORT}/api/auth/login`);
       console.log(`Target management: http://localhost:${PORT}/api/targets`);
       console.log(`Facebook OAuth: http://localhost:${PORT}/api/facebook/status`);
+      console.log(`Data deletion: http://localhost:${PORT}/data-deletion`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

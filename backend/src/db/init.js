@@ -16,11 +16,30 @@ async function initializeDatabase() {
         email VARCHAR(255) UNIQUE NOT NULL,
         name VARCHAR(255) NOT NULL,
         password VARCHAR(255) NOT NULL,
+        facebook_user_id VARCHAR(255),
+        facebook_access_token TEXT,
+        facebook_token_expires TIMESTAMP,
+        facebook_connected_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
     console.log('✓ Users table created');
+
+    // Add Facebook columns if they don't exist (migration)
+    try {
+      await query(`
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS facebook_user_id VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS facebook_access_token TEXT,
+        ADD COLUMN IF NOT EXISTS facebook_token_expires TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS facebook_connected_at TIMESTAMP;
+      `);
+      console.log('✓ Facebook columns added to users table');
+    } catch (error) {
+      // Columns might already exist
+      console.log('  Facebook columns already exist');
+    }
 
     // Create webhook_targets table
     await query(`

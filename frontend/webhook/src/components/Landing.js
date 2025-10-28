@@ -95,6 +95,19 @@ function Landing() {
       </section>
 
       <footer className="landing-footer">
+        <div className="footer-links">
+          <button onClick={() => navigate('/privacy')} className="footer-link">
+            Privacy Policy
+          </button>
+          <span className="footer-separator">•</span>
+          <button onClick={() => navigate('/terms')} className="footer-link">
+            Terms of Service
+          </button>
+          <span className="footer-separator">•</span>
+          <button onClick={() => navigate('/data-deletion')} className="footer-link">
+            Data Deletion
+          </button>
+        </div>
         <p>&copy; 2025 FB Webhook Pro. Built for developers, by developers.</p>
       </footer>
     </div>
